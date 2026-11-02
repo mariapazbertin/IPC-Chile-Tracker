@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>IPC Chile Tracker</title>
+<title>Tracker IPC</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body style="background:#f5f5f5;min-height:100vh;display:flex;justify-content:center;padding:2rem 1rem;zoom:1.1">
@@ -222,12 +222,12 @@
 
   <!-- ====================== ENCABEZADO ====================== -->
   <div class="wh">
-    <h2>IPC Chile Tracker</h2>
+    <h2>Tracker IPC</h2>
     <div class="wh-meta">
       <span class="wh-tag">Información pública</span>
       <span class="wh-sub">Periodicidad: Mensual</span>
       <span class="wh-sub" id="hdrUpd"></span>
-      <span class="wh-sub">Fuente: <a href="https://www.ine.gob.cl" target="_blank" style="color:#969696;text-decoration:none">ine.gob.cl</a> · RiskAmerica</span>
+      <span class="wh-sub">Fuente: <a href="https://www.ine.gob.cl" target="_blank" style="color:#969696;text-decoration:none">INE</a>, RiskAmerica</span>
       <button class="btn-pdf" id="btnPdf" onclick="genPdf()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
     </div>
   </div>
@@ -554,7 +554,7 @@ const ineIco=d=>'<img width="20" height="20" alt="" src="data:image/svg+xml;char
   INE_PROD.forEach(p=>{h+=`<div><div class="ine-pt">${escH(p.t)}</div><div class="ine-p">${escH(p.x)}</div></div>`;});
   h+='</div>';
   document.getElementById('ineTxt').innerHTML=h;
-  document.getElementById('sIne').textContent='Fuente: INE, '+CFG.boletin+', página 2.';
+  document.getElementById('sIne').textContent='Fuente: INE.';
 })();
 
 /* ---------- 5. Gráficos ---------- */
@@ -675,9 +675,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementB
    EXPORTACIÓN PDF — formato horizontal MFO (PPT 16:9: 960 × 540 px = 720 × 405 pt).
    Geometría, tipografías y colores leídos del XML del PPT (EMU/9525 = px a 96 dpi) y
    medidos sobre el PDF de referencia a 384 dpi. Todo sale de los arreglos de DATOS.
-   Archivo: AAMMDD_IPC Chile Tracker.pdf (AAMMDD = data-date de "Última actualización").
+   Archivo: AAMMDD_Tracker IPC.pdf (AAMMDD = data-date de "Última actualización").
    ============================================================ */
-const PDF_CFG={title:'IPC Chile Tracker',fileName:'IPC Chile Tracker',coverInst:'Instituto Nacional de Estadísticas'};
+const PDF_CFG={coverTitle:'Monitor Mensual',coverSub:'Inflación',slideTitle:'Inflación',fileName:'Tracker IPC'};
 const PDF_LIBS=['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
                 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
 const PDF_FONTS=['300 16px Aller','italic 300 16px Aller','400 16px Aller','italic 400 16px Aller','700 16px Aller','italic 700 16px Aller'];
@@ -708,13 +708,13 @@ function slideCover(stage,meta){
   const s=mk('div','sl');
   s.innerHTML=`<img class="cv-art" alt="" src="${COVER_ART}">`+
     `<div class="cv-logo"><img alt="MFO" src="${COVER_LOGO}"></div>`+
-    `<div class="cv-tbox"><div class="cv-t1">${escH(PDF_CFG.title)}</div><div class="cv-t2">${escH(PDF_CFG.coverInst)}</div></div>`+
+    `<div class="cv-tbox"><div class="cv-t1">${escH(PDF_CFG.coverTitle)}</div><div class="cv-t2">${escH(PDF_CFG.coverSub)}</div></div>`+
     `<div class="cv-date">${escH(meta.edition)}</div>`;
   stage.appendChild(s);return s;
 }
 function slideFrame(stage,sub,foot){
   const s=mk('div','sl');
-  s.innerHTML=`<div class="sl-bar"></div><div class="sl-title">${escH(PDF_CFG.title)}</div>`+
+  s.innerHTML=`<div class="sl-bar"></div><div class="sl-title">${escH(PDF_CFG.slideTitle)}</div>`+
     `<div class="sl-sub">${escH(sub)}</div><img class="sl-logo" alt="MFO" src="${MFO_LOGO}">`+
     `<div class="sl-body"></div><div class="sl-foot">${escH(foot)}</div><div class="sl-num"></div>`;
   stage.appendChild(s);return s;
@@ -781,6 +781,7 @@ function hChart(p,o){
     if(o.valLabel&&o.valLabel.i===i)cText(p,Math.max(x0,x1)+4,y,o.valLabel.text,{color:o.valLabel.color});});
   cTitle(p,(P.l+P.r)/2,o.title);
 }
+function cNote(p,x,y,txt){p.appendChild(mk('div','pb-note',`position:absolute;left:${x}px;top:${y}px;margin:0;white-space:nowrap`,escH(txt)));}
 function chartSlide(stage,slides,sub,foot,draw){const s=slideFrame(stage,sub,foot);slides.push(s);const c=mk('div','',`position:absolute;left:0;top:0;width:${SL.w}px;height:${SL.h}px`);s.appendChild(c);draw(c);}
 
 /* ---------- armado del documento ---------- */
@@ -789,27 +790,27 @@ function pdfBuildStage(meta){
   document.documentElement.appendChild(stage);            // fuera del body (el body tiene zoom)
   const slides=[];
   slides.push(slideCover(stage,meta));
-  const src='Fuente: INE – Instituto Nacional de Estadísticas, '+CFG.boletin;
 
   // 2. Resumen del panel más reciente + inflación y subyacente
   const latest=document.querySelector('[data-pdf-latest]').cloneNode(true);latest.removeAttribute('id');
-  flowSection(stage,slides,'Resumen del mes · '+CFG.mes,src+'; RiskAmerica (Esperado).',[
+  flowSection(stage,slides,'Resumen del mes','Fuente: INE, RiskAmerica.',[
     pBlock(latest),
     pBlock(pHead('Inflación y subyacente · últimos 12 meses'),mk('div','',null,rollTable(SUB_ROWS,'')),pNote(SUB_NOTE))
   ]);
   // 3. Divisiones
-  flowSection(stage,slides,'Variación mensual por división · últimos 12 meses',src+'.',[
+  flowSection(stage,slides,'Variación mensual por división · últimos 12 meses','Fuente: INE.',[
     pBlock(mk('div','',null,rollTable(DIV_ROWS,'Pond.')),pNote(DIV_NOTE))
   ]);
   // 4. Histórica
-  flowSection(stage,slides,'Inflación mensual histórica','Fuente: INE, RiskAmerica. Celdas verdes: proyección RiskAmerica. Recuadro: último dato publicado.',[
-    pBlock(mk('div','',null,histHTML()))
+  flowSection(stage,slides,'Inflación mensual histórica','Fuente: INE, RiskAmerica.',[
+    pBlock(mk('div','',null,histHTML()),pNote('Celdas verdes: proyección RiskAmerica. Recuadro: último dato publicado.'))
   ]);
   // 5. IPC mensual, 12 meses y acumulado
   const mens=MESES.map((m,i)=>i<=L?IPC.mensual[i]:HIST[CFG.anio][i]);
   const mMax=Math.max(1.4,Math.ceil(Math.max(...mens)/0.2)*0.2);
-  chartSlide(stage,slides,'IPC mensual, en 12 meses y acumulado',
-    'Fuente: INE, RiskAmerica. Barras claras: proyección RiskAmerica'+(L<11?' ('+MESES_L[L+1]+' a diciembre)':'')+'. Puntos en Dic: proyecciones de cierre '+CFG.anio+'.',c=>{
+  chartSlide(stage,slides,'IPC mensual, en 12 meses y acumulado','Fuente: INE, RiskAmerica, Banco Central de Chile.',c=>{
+    cNote(c,112.5,368,L<11?'Barras claras: proyección RiskAmerica ('+MESES_L[L+1]+' a diciembre).':'Año completo publicado.');
+    cNote(c,516,368,'Puntos en Dic: proyecciones de cierre '+CFG.anio+'.');
     vChart(c,{title:'IPC mensual y en 12 meses',plot:{l:112.5,t:193.5,r:338,b:349.25},cats:MESES,
       yL:{min:Math.min(0,Math.floor(Math.min(...mens)/0.2)*0.2),max:mMax,step:0.2,fmt:v=>fmt(v,1)+'%'},
       yR:{min:0,max:6,step:1,fmt:v=>fmt(v,0)+'%'},
@@ -830,8 +831,9 @@ function pdfBuildStage(meta){
   const iIPC=ac.findIndex(r=>r[0].startsWith('IPC'));
   const rng=(arr,step)=>({min:Math.min(0,Math.floor(Math.min(...arr)/step)*step),max:Math.max(0,Math.ceil(Math.max(...arr)/step)*step)});
   const rI=rng(inc.map(r=>r[1]),0.05),rA=rng(ac.map(r=>r[1]),5);
-  chartSlide(stage,slides,'Contribución y variación acumulada por división',
-    src+'. Contribución: incidencia en pp, '+CFG.mes.toLowerCase()+'. Variación acumulada: enero a '+CFG.mes.toLowerCase()+'.',c=>{
+  chartSlide(stage,slides,'Contribución y variación acumulada por división','Fuente: INE.',c=>{
+    cNote(c,232,368,'Incidencia en pp, '+CFG.mes.toLowerCase()+'.');
+    cNote(c,642,368,'Enero a '+CFG.mes.toLowerCase()+'.');
     hChart(c,{title:'Contribución por división - '+mesNom.toLowerCase(),plot:{l:232,t:193.5,r:458,b:349.25},
       cats:inc.map(r=>r[0]),vals:inc.map(r=>r[1]),colors:inc.map(r=>r[1]<0?CH.c:CH.gr),
       x:{min:rI.min,max:rI.max,step:0.05,fmt:v=>fmt(v,2)}});
@@ -846,7 +848,7 @@ function pdfBuildStage(meta){
   const pr=mk('div','ine-prod',`grid-template-rows:repeat(${Math.ceil(INE_PROD.length/2)},auto)`);
   INE_PROD.forEach(q=>pr.appendChild(mk('div','',null,`<div class="ine-pt">${escH(q.t)}</div><div class="ine-p">${escH(q.x)}</div>`)));
   blocks.push(pBlock(mk('div','ine-h',null,'Productos'),pr));
-  flowSection(stage,slides,'Mayores incidencias por división y producto','Fuente: INE – Instituto Nacional de Estadísticas, '+CFG.boletin+', página 2.',blocks);
+  flowSection(stage,slides,'Mayores incidencias por división y producto','Fuente: INE.',blocks);
 
   slides.forEach((s,i)=>{const n=s.querySelector('.sl-num');if(n)n.textContent=String(i+1);});
   return {stage,slides};
