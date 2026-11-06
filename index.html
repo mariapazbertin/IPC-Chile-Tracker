@@ -318,25 +318,25 @@
    ===================================================================== */
 const CFG={
   anio:2026,
-  mes:'Septiembre 2026',
-  publicado:'8 oct 2026',
-  publicadoISO:'2026-10-08',
-  boletin:'Boletín Estadístico IPC Nº335',
-  esperado:0.5,
+  mes:'Octubre 2026',
+  publicado:'6 nov 2026',
+  publicadoISO:'2026-11-06',
+  boletin:'Boletín Estadístico IPC Nº336',
+  esperado:0.56,                       // RiskAmerica (Excel Comité IPC & UF, antes del dato)
   ipom:{v:4.3,lab:'IPoM sept/26'},     // inflación 2026e, Proyecciones Banco Central (fuente B)
-  proyCierre:{v:4.7,lab:'Forecast'} // fuente C
+  proyCierre:{v:5.2,lab:'Forecast'} // Forecast: inflación fin de 2026
 };
 const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sept','Oct','Nov','Dic'];
 
 /* Serie del año en curso (fuente A), enero en adelante. */
 const IPC={
-  mensual:  [0.4, 0.0, 1.0, 1.3, 0.2, 0.0, 0.1, 0.6, 0.4],
-  v12:      [2.8, 2.4, 2.8, 4.0, 3.9, 4.3, 3.5, 4.1, 4.1],
-  acum:     [0.4, 0.4, 1.4, 2.7, 2.8, 2.8, 2.9, 3.6, 4.0],
-  sinVol:   [0.7, 0.2, 0.5, 0.5, 0.2, 0.2, 0.5, 0.1, 0.3],
-  sae:      [0.7, 0.1, 0.8, 0.3, 0.4,-0.1, 0.4, 0.4, 0.1],
-  energia:  [-1.4,-1.3, 3.0,11.4, 1.0,-1.1,-3.0, 0.4, 1.9],
-  alimentos:[0.4, 0.2, 0.6, 0.0,-0.8, 0.8, 0.7, 1.4, 0.6]
+  mensual:  [0.4, 0.0, 1.0, 1.3, 0.2, 0.0, 0.1, 0.6, 0.4, 0.5],
+  v12:      [2.8, 2.4, 2.8, 4.0, 3.9, 4.3, 3.5, 4.1, 4.1, 4.5],
+  acum:     [0.4, 0.4, 1.4, 2.7, 2.8, 2.8, 2.9, 3.6, 4.0, 4.5],
+  sinVol:   [0.7, 0.2, 0.5, 0.5, 0.2, 0.2, 0.5, 0.1, 0.3, 0.0],
+  sae:      [0.7, 0.1, 0.8, 0.3, 0.4,-0.1, 0.4, 0.4, 0.1, 0.0],
+  energia:  [-1.4,-1.3, 3.0,11.4, 1.0,-1.1,-3.0, 0.4, 1.9, 2.7],
+  alimentos:[0.4, 0.2, 0.6, 0.0,-0.8, 0.8, 0.7, 1.4, 0.6, 1.0]
 };
 /* Año anterior (12 valores Ene–Dic; null = sin boletín cargado).
    IPC mensual del año anterior se toma de HIST si aquí es null. */
@@ -354,19 +354,19 @@ const IPC_PREV={
 
 /* Divisiones (fuente A): p = ponderación, m = variación mensual desde enero. */
 const DIVS=[
-  {n:'Alimentos y bebidas no alcohólicas', p:22.15348, m:[0.4, 0.2, 0.6, 0.0,-0.8, 0.8, 0.7, 1.4, 0.6]},
-  {n:'Bebidas alcohólicas y tabaco',       p:3.68125,  m:[3.1,-0.9, 2.0,-0.4, 0.4, 0.9, 0.4, 0.2,-0.3]},
-  {n:'Vestuario y calzado',                p:2.9004,   m:[-0.6,2.3, 2.0,-1.8,-0.2,-6.1, 2.3, 0.8, 2.3]},
-  {n:'Vivienda y servicios básicos',       p:16.76332, m:[0.3,-0.4, 0.1, 0.8, 0.7, 0.4, 0.7, 0.2, 0.4]},
-  {n:'Equipamiento y mantención del hogar',p:6.18583,  m:[1.1, 0.6, 0.1, 0.1, 0.5,-1.7, 0.9,-0.1, 0.2]},
-  {n:'Salud',                              p:8.21206,  m:[1.2, 0.4,-0.1, 0.8, 0.2, 0.6, 0.4, 0.2, 0.4]},
-  {n:'Transporte',                         p:13.45108, m:[-1.3,0.1, 2.6, 8.0, 0.6,-1.3,-3.5, 1.6, 0.9]},
-  {n:'Información y comunicación',         p:6.64634,  m:[1.0,-0.4, 1.3, 0.1, 0.0, 0.2, 0.2,-0.3, 0.6]},
-  {n:'Recreación, deportes y cultura',     p:4.75354,  m:[1.1,-0.1, 0.3, 0.8, 0.9, 0.8, 1.2, 0.6, 0.1]},
-  {n:'Educación',                          p:4.19831,  m:[0.1, 0.0, 5.5, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0]},
-  {n:'Restaurantes y alojamiento',         p:6.22047,  m:[0.2,-0.1, 0.7, 0.3, 0.6, 0.4, 1.1, 0.5,-0.2]},
-  {n:'Seguros y servicios financieros',    p:1.10487,  m:[-0.1,-2.9,-0.5,0.2,-0.2, 3.4,-2.2,-0.3,-5.9]},
-  {n:'Bienes y servicios diversos',        p:3.72905,  m:[0.9,-0.5,-0.5, 1.3, 0.3,-0.7, 0.7, 0.0,-0.1]}
+  {n:'Alimentos y bebidas no alcohólicas', p:22.15348, m:[0.4, 0.2, 0.6, 0.0,-0.8, 0.8, 0.7, 1.4, 0.6, 1.0]},
+  {n:'Bebidas alcohólicas y tabaco',       p:3.68125,  m:[3.1,-0.9, 2.0,-0.4, 0.4, 0.9, 0.4, 0.2,-0.3, 1.0]},
+  {n:'Vestuario y calzado',                p:2.9004,   m:[-0.6,2.3, 2.0,-1.8,-0.2,-6.1, 2.3, 0.8, 2.3, -4.1]},
+  {n:'Vivienda y servicios básicos',       p:16.76332, m:[0.3,-0.4, 0.1, 0.8, 0.7, 0.4, 0.7, 0.2, 0.4, 0.6]},
+  {n:'Equipamiento y mantención del hogar',p:6.18583,  m:[1.1, 0.6, 0.1, 0.1, 0.5,-1.7, 0.9,-0.1, 0.2, -0.6]},
+  {n:'Salud',                              p:8.21206,  m:[1.2, 0.4,-0.1, 0.8, 0.2, 0.6, 0.4, 0.2, 0.4, -0.2]},
+  {n:'Transporte',                         p:13.45108, m:[-1.3,0.1, 2.6, 8.0, 0.6,-1.3,-3.5, 1.6, 0.9, 2.0]},
+  {n:'Información y comunicación',         p:6.64634,  m:[1.0,-0.4, 1.3, 0.1, 0.0, 0.2, 0.2,-0.3, 0.6, -1.0]},
+  {n:'Recreación, deportes y cultura',     p:4.75354,  m:[1.1,-0.1, 0.3, 0.8, 0.9, 0.8, 1.2, 0.6, 0.1, -0.2]},
+  {n:'Educación',                          p:4.19831,  m:[0.1, 0.0, 5.5, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0]},
+  {n:'Restaurantes y alojamiento',         p:6.22047,  m:[0.2,-0.1, 0.7, 0.3, 0.6, 0.4, 1.1, 0.5,-0.2, 0.8]},
+  {n:'Seguros y servicios financieros',    p:1.10487,  m:[-0.1,-2.9,-0.5,0.2,-0.2, 3.4,-2.2,-0.3,-5.9, -0.1]},
+  {n:'Bienes y servicios diversos',        p:3.72905,  m:[0.9,-0.5,-0.5, 1.3, 0.3,-0.7, 0.7, 0.0,-0.1, 0.1]}
 ];
 /* Año anterior por división (mismo orden que DIVS). Sept–Dic 2025: boletines INE Nº323 a Nº326. */
 const DIVS_PREV=[
@@ -386,11 +386,11 @@ const DIVS_PREV=[
 ];
 /* Último mes publicado (fuente A): var. acumulada e incidencia mensual (pp), mismo orden que DIVS. */
 const DIV_ULT={
-  acum:[3.9, 5.4, 0.8, 3.2, 1.6, 4.1, 7.5, 2.9, 5.7, 5.8, 3.6,-8.4, 1.4],
-  inc: [0.133,-0.012,0.054,0.080,0.011,0.031,0.122,0.037,0.006,0.000,-0.015,-0.056,-0.002]
+  acum:[5.0, 6.4,-3.4, 3.8, 1.0, 3.9, 9.7, 1.9, 5.5, 5.8, 4.4,-8.5, 1.5],
+  inc: [0.231,0.035,-0.098,0.111,-0.036,-0.019,0.265,-0.058,-0.008,0.000,0.050,0.000,0.005]
 };
 
-/* Tabla "Inflación Mensual" (fuente B). */
+/* Tabla "Inflación Mensual" (fuente B: Excel Comité – IPC & UF Chile, hoja IPC). null = sin dato en la fuente. */
 const HIST={
   2017:[0.5,0.2,0.4,0.2,0.1,-0.4,0.2,0.2,-0.1,0.6,0.1,0.1],
   2018:[0.5,0.1,0.2,0.3,0.3,0.1,0.4,0.2,0.3,0.4,0.0,-0.1],
@@ -401,28 +401,28 @@ const HIST={
   2023:[0.8,-0.1,1.1,0.3,0.1,-0.2,0.4,0.1,0.7,0.4,0.7,-0.5],
   2024:[0.7,0.6,0.4,0.5,0.3,-0.1,0.7,0.3,0.1,1.0,0.2,-0.2],
   2025:[1.1,0.4,0.5,0.2,0.2,-0.4,0.9,0.0,0.4,0.0,0.3,-0.2],
-  2026:[0.4,0.0,1.0,1.3,0.2,0.0,0.1,0.6,0.4,0.5,0.5,0.0],
-  2027:[0.6,0.3,0.6,0.2,0.3,0.0,0.4,0.3,0.4,0.2,0.2,-0.1]
+  2026:[0.4,0.0,1.0,1.3,0.2,0.0,0.1,0.6,0.4,0.5,0.5,0.1],
+  2027:[0.4,0.3,0.6,0.3,0.3,0.0,0.4,0.3,0.4,0.1,0.4,0.0]
 };
 const HIST_TOT={2017:2.3,2018:2.6,2019:3.0,2020:3.0,2021:7.2,2022:12.8,2023:3.9,2024:4.5,2025:3.5,2026:5.1,2027:3.4};
 const HIST_AVG={lab:'Prom. 2010/2020',m:[0.3,0.3,0.4,0.2,0.2,0.1,0.3,0.2,0.4,0.5,0.0,0.1],tot:3.1};
 
 /* Textos de la página 2 del boletín INE (fuente A), literales. dir: 'up' | 'down'. */
 const INE_DIV=[
-  {t:'División 1 de alimentos y bebidas no alcohólicas',dir:'up',
-   x:'Alimentos y bebidas no alcohólicas anotó aumentos mensuales en nueve de sus 15 clases. La más importante fue hortalizas, legumbres y tubérculos (4,1%) que incidió 0,098pp., mientras que frutas y frutos secos (3,1%) contribuyó con 0,045pp. De los 81 productos que componen la división, 46 presentaron alzas en sus precios, destacando papas (8,6%), con una incidencia de 0,027pp., y lechugas (10,5%), con 0,023pp. Los restantes productos con incidencias positivas acumularon 0,202pp.'},
   {t:'División 7 de transporte',dir:'up',
-   x:'Transporte consignó alzas mensuales en siete de sus once clases. La más importante fue combustibles para vehículos personales (3,7%) que aportó 0,145pp., seguida de transporte de pasajeros por carretera (2,9%), con 0,042pp. De los 25 productos que componen la división, 13 consignaron incrementos en sus precios, destacando gasolina (2,7%), con una incidencia de 0,093pp., seguido de petróleo diésel (10,2%), con 0,052pp. Los restantes productos con contribuciones positivas acumularon 0,105pp.'},
-  {t:'División 12 de seguros y servicios financieros',dir:'down',
-   x:'Seguros y servicios financieros registró descensos en una de sus dos clases. La clase que presentó disminución en sus precios fue seguros (-7,7%), con una incidencia de -0,056pp. De los dos productos que componen la división, seguros consignó bajas en sus precios (-7,7%), con una incidencia de -0,056pp.'}
+   x:'Transporte anotó aumentos mensuales en ocho de sus once clases. La más importante fue combustibles para vehículos personales (5,6%) que incidió 0,225pp., mientras que transporte aéreo de pasajeros (4,2%) contribuyó con 0,036pp. De los 25 productos que componen la división, doce presentaron alzas en sus precios, destacando gasolina (4,5%), con una incidencia de 0,157pp., y transporte aéreo internacional (13,0%), con 0,071pp. Los restantes productos con incidencias positivas acumularon 0,088pp.'},
+  {t:'División 1 de alimentos y bebidas no alcohólicas',dir:'up',
+   x:'Alimentos y bebidas no alcohólicas consignó alzas mensuales en 13 de sus 15 clases. La más importante fue hortalizas, legumbres y tubérculos (4,6%) que aportó 0,114pp., seguida de pan, cereales, harinas y pastas (0,8%), con 0,035pp. De los 81 productos que componen la división, 56 consignaron incrementos en sus precios, destacando papas (12,0%), con una incidencia de 0,040pp., seguido de tomates (11,2%), con 0,038pp. Los restantes productos con contribuciones positivas acumularon 0,262pp.'},
+  {t:'División 3 de vestuario y calzado',dir:'down',
+   x:'Vestuario y calzado registró descensos en tres de sus cuatro clases. La más importante fue vestuario (-3,9%), que aportó -0,055pp., seguida de calzado (-4,7%), con -0,042pp. De los 23 productos que componen la división, 20 consignaron bajas en sus precios, destacando zapatillas para hombre (-5,4%), con una incidencia de -0,014pp., y pantalones para hombre (-5,5%), con -0,013pp. Los restantes productos con contribuciones negativas acumularon -0,072pp.'}
 ];
 const INE_PROD=[   // orden del boletín: columna izquierda y luego derecha
-  {t:'Gasolina',x:'En septiembre presentó un aumento mensual de 2,7%, aportando 0,093pp. a la variación del indicador general. Acumuló 20,8% al noveno mes del año.'},
-  {t:'Suministro de electricidad',x:'Anotó un incremento mensual de 1,6%, con una incidencia de 0,055pp., y una variación acumulada de 2,4% en el año.'},
-  {t:'Petróleo diésel',x:'Registró un alza mensual de 10,2%, con 0,052pp., acumulando 36,8% durante el año.'},
-  {t:'Transporte aéreo nacional',x:'Consignó un crecimiento de 16,3%, con 0,042pp., acumulando -3,6% en el año.'},
-  {t:'Transporte aéreo internacional',x:'Reportó un descenso mensual de 18,7%, con una incidencia de -0,126pp., registrando una variación de 5,6% durante el año.'},
-  {t:'Seguros',x:'Registró una disminución mensual de 7,7%, con -0,056pp., acumulando -11,1% durante el año.'}
+  {t:'Gasolina',x:'En octubre presentó un aumento mensual de 4,5%, aportando 0,157pp. a la variación del indicador general. Acumuló 26,2% al décimo mes del año.'},
+  {t:'Transporte aéreo internacional',x:'Anotó un incremento mensual de 13,0%, con una incidencia de 0,071pp., y una variación acumulada de 19,4% en el año.'},
+  {t:'Petróleo diésel',x:'Registró un alza mensual de 12,3%, con 0,068pp., acumulando 53,5% durante el año.'},
+  {t:'Gastos comunes',x:'Consignó un crecimiento de 3,9%, con 0,055pp., acumulando 5,7% en el año.'},
+  {t:'Conexión a internet',x:'Reportó un descenso mensual de 14,7%, con una incidencia de -0,070pp., registrando una variación de -14,7% durante el año.'},
+  {t:'Transporte aéreo nacional',x:'Registró una disminución mensual de 11,8%, con -0,035pp., acumulando -15,0% durante el año.'}
 ];
 /* ============================ FIN DATOS ============================ */
 
@@ -529,12 +529,12 @@ function histHTML(){
       if(v<0)c.push('h-neg');
       if(isProj(y,i))c.push('h-proj');
       if(+y===CFG.anio&&i===L)c.push('h-sel');
-      h+=`<td class="${c.join(' ')}">${pct(v)}</td>`;
+      h+=`<td class="${c.join(' ')}">${v==null?'–':pct(v)}</td>`;
     });
     h+=`<td class="h-avg">${pct(HIST_AVG.m[i])}</td></tr>`;
   });
   h+='<tr class="h-tot"><td class="h-m"></td>';
-  yrs.forEach(y=>{h+=`<td class="${+y>=CFG.anio?'h-proj':''}">${pct(HIST_TOT[y])}</td>`;});
+  yrs.forEach(y=>{h+=`<td class="${+y>=CFG.anio?'h-proj':''}">${HIST_TOT[y]==null?'–':pct(HIST_TOT[y])}</td>`;});
   h+=`<td class="h-avg">${pct(HIST_AVG.tot)}</td></tr></tbody></table>`;
   return h;
 }
