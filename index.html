@@ -720,13 +720,15 @@ function slideFrame(stage,sub,foot){
   stage.appendChild(s);return s;
 }
 /* Secciones de flujo: los bloques nunca se cortan; si no caben, siguen en otra lámina. */
-function flowSection(stage,slides,sub,foot,blocks){
-  let s=slideFrame(stage,sub,foot),body=s.querySelector('.sl-body'),y=0;slides.push(s);
-  const cap=SL.bodyBottom-SL.bodyTop;
+function flowSection(stage,slides,sub,foot,blocks,top){
+  const top0=SL.bodyTop+(top||0);
+  const frame=t=>{const s=slideFrame(stage,t,foot);s.querySelector('.sl-body').style.top=top0+'px';return s;};
+  let s=frame(sub),body=s.querySelector('.sl-body'),y=0;slides.push(s);
+  const cap=SL.bodyBottom-top0;
   blocks.forEach(b=>{
     body.appendChild(b);const h=b.offsetHeight;
     if(y>0&&y+h>cap){
-      s=slideFrame(stage,sub+' (continuación)',foot);slides.push(s);
+      s=frame(sub+' (continuación)');slides.push(s);
       body=s.querySelector('.sl-body');body.appendChild(b);y=0;
     }
     y+=h+10;
@@ -735,6 +737,7 @@ function flowSection(stage,slides,sub,foot,blocks){
 const pHead=t=>mk('div','pb-h',null,escH(t));
 const pNote=t=>mk('div','pb-note',null,escH(t));
 function pBlock(...kids){const b=mk('div','pb');kids.forEach(k=>b.appendChild(k));return b;}
+function pGap(b,px){b.style.paddingTop=px+'px';return b;}
 
 /* ---------- gráficos hechos con divs (sin canvas ni SVG con texto) ---------- */
 const CH={ink:'#1B2025',grid:'#E5E9EC',zero:'#BFBFBF',g:'#7BC143',g4:'#E1F1D3',g2:'#B3D88C',sl:'#5D7082',gr:'#BEBEBE',c:'#E07F5C'};
@@ -750,25 +753,31 @@ function cSeg(p,x1,y1,x2,y2,color,w){
 function cDot(p,x,y,r,color,square){p.appendChild(mk('div','',`position:absolute;left:${x-r}px;top:${y-r}px;width:${2*r}px;height:${2*r}px;background:${color};border-radius:${square?0:50}%`));}
 function ticks(min,max,step){const a=[];for(let v=min;v<=max+step/1e6;v+=step)a.push(+v.toFixed(6));return a;}
 function cTitle(p,cx,t){cText(p,cx,178.85,t,{size:10.67,w:700,align:'c'});}
+function cLegendRow(p,cx,y,items,fs){fs=fs||7.5;const sq=Math.round(fs*0.8);
+  const row=mk('div','',`position:absolute;left:${cx}px;top:${y}px;transform:translate(-50%,-50%);display:flex;gap:16px;white-space:nowrap`);
+  items.forEach(it=>{const s=mk('div','',`display:flex;align-items:center;gap:4px;font-size:${fs}px;font-weight:700;color:${CH.ink};line-height:1`);
+    s.appendChild(mk('div','',`width:${sq}px;height:${sq}px;background:${it.color}`));s.appendChild(mk('div','',null,escH(it.label)));row.appendChild(s);});
+  p.appendChild(row);
+}
 function cLegend(p,x,y,items){
   items.forEach((it,k)=>{const yy=y+k*13.3;cRect(p,x,yy-3,6,6,it.color);cText(p,x+8.5,yy,it.label,{size:7});});
 }
 /* Columnas verticales + línea (eje derecho opcional) */
 function vChart(p,o){
-  const P=o.plot,W=P.r-P.l,H=P.b-P.t,n=o.cats.length,bw=W/n;
+  const P=o.plot,W=P.r-P.l,H=P.b-P.t,n=o.cats.length,bw=W/n,fs=o.fs||7,gap=fs*0.96;
   const yL=v=>P.b-(v-o.yL.min)/(o.yL.max-o.yL.min)*H;
   const yR=o.yR?(v=>P.b-(v-o.yR.min)/(o.yR.max-o.yR.min)*H):yL;
-  ticks(o.yL.min,o.yL.max,o.yL.step).forEach(v=>{const y=yL(v);cRect(p,P.l,y-.4,W,.8,v===0?CH.zero:CH.grid);cText(p,P.l-6.75,y,o.yL.fmt(v),{align:'r'});});
-  if(o.yR)ticks(o.yR.min,o.yR.max,o.yR.step).forEach(v=>cText(p,P.r+6.75,yR(v),o.yR.fmt(v)));
+  ticks(o.yL.min,o.yL.max,o.yL.step).forEach(v=>{const y=yL(v);cRect(p,P.l,y-.4,W,.8,v===0?CH.zero:CH.grid);cText(p,P.l-gap,y,o.yL.fmt(v),{align:'r',size:fs});});
+  if(o.yR)ticks(o.yR.min,o.yR.max,o.yR.step).forEach(v=>cText(p,P.r+gap,yR(v),o.yR.fmt(v),{size:fs}));
   (o.bars||[]).forEach((b,i)=>{if(b==null||b.v==null)return;const x=P.l+i*bw+bw*.18,w=bw*.64,y0=yL(Math.max(0,o.yL.min)),y=yL(b.v);
     cRect(p,x,Math.min(y,y0),w,Math.abs(y0-y),b.color,b.border?`box-shadow:inset 0 0 0 .75px ${b.border}`:'');});
   (o.lines||[]).forEach(l=>{const f=l.axis==='R'?yR:yL;const pts=l.vals.map((v,i)=>v==null?null:[P.l+(i+.5)*bw,f(v)]);
     for(let i=1;i<pts.length;i++)if(pts[i]&&pts[i-1])cSeg(p,pts[i-1][0],pts[i-1][1],pts[i][0],pts[i][1],l.color,l.w||1.6);
     pts.forEach(q=>{if(q)cDot(p,q[0],q[1],l.r||2,l.color,l.square);});});
-  (o.points||[]).forEach(q=>{const x=P.l+(q.i+.5)*bw,y=yL(q.v);cDot(p,x,y,q.r||3,q.color);if(q.label)cText(p,x+(q.dx||0),y+(q.dy||0),q.label,{align:q.align||'c',color:q.lc||CH.ink,size:7});});
-  o.cats.forEach((c,i)=>cText(p,P.l+(i+.5)*bw,P.b+6.75,c,{align:'c'}));
+  (o.points||[]).forEach(q=>{const x=P.l+(q.i+.5)*bw,y=yL(q.v);cDot(p,x,y,q.r||3,q.color);if(q.label)cText(p,x+(q.dx||0),y+(q.dy||0),q.label,{align:q.align||'c',color:q.lc||CH.ink,size:fs});});
+  o.cats.forEach((c,i)=>cText(p,P.l+(i+.5)*bw,P.b+gap,c,{align:'c',size:fs}));
   cTitle(p,(P.l+P.r)/2,o.title);
-  if(o.legend)cLegend(p,o.legend.x,o.legend.y,o.legend.items);
+  if(o.legend)o.legend.below?cLegendRow(p,(P.l+P.r)/2,P.b+fs*2.9,o.legend.items,fs+0.5):cLegend(p,o.legend.x,o.legend.y,o.legend.items);
 }
 /* Barras horizontales */
 function hChart(p,o){
@@ -795,35 +804,35 @@ function pdfBuildStage(meta){
   const latest=document.querySelector('[data-pdf-latest]').cloneNode(true);latest.removeAttribute('id');
   flowSection(stage,slides,'Resumen del mes','Fuente: INE, RiskAmerica.',[
     pBlock(latest),
-    pBlock(pHead('Inflación y subyacente · últimos 12 meses'),mk('div','',null,rollTable(SUB_ROWS,'')),pNote(SUB_NOTE))
+    pGap(pBlock(pHead('Inflación y subyacente · últimos 12 meses'),mk('div','',null,rollTable(SUB_ROWS,'')),pNote(SUB_NOTE)),16)
   ]);
   // 3. Divisiones
   flowSection(stage,slides,'Variación mensual por división · últimos 12 meses','Fuente: INE.',[
     pBlock(mk('div','',null,rollTable(DIV_ROWS,'Pond.')),pNote(DIV_NOTE))
-  ]);
+  ],16);
   // 4. Histórica
   flowSection(stage,slides,'Inflación mensual histórica','Fuente: INE, RiskAmerica.',[
     pBlock(mk('div','',null,histHTML()),pNote('Celdas verdes: proyección RiskAmerica. Recuadro: último dato publicado.'))
-  ]);
+  ],16);
   // 5. IPC mensual, 12 meses y acumulado
   const mens=MESES.map((m,i)=>i<=L?IPC.mensual[i]:HIST[CFG.anio][i]);
   const mMax=Math.max(1.4,Math.ceil(Math.max(...mens)/0.2)*0.2);
   chartSlide(stage,slides,'IPC mensual, en 12 meses y acumulado','Fuente: INE, RiskAmerica, Banco Central de Chile.',c=>{
-    cNote(c,112.5,368,L<11?'Barras claras: proyección RiskAmerica ('+MESES_L[L+1]+' a diciembre).':'Año completo publicado.');
-    cNote(c,516,368,'Puntos en Dic: proyecciones de cierre '+CFG.anio+'.');
-    vChart(c,{title:'IPC mensual y en 12 meses',plot:{l:112.5,t:193.5,r:338,b:349.25},cats:MESES,
+    cNote(c,132,428,L<11?'Barras claras: proyección RiskAmerica ('+MESES_L[L+1]+' a diciembre).':'Año completo publicado.');
+    cNote(c,548,428,'Puntos en Dic: proyecciones de cierre '+CFG.anio+'.');
+    vChart(c,{title:'IPC mensual y en 12 meses',fs:9,plot:{l:132,t:200,r:416,b:388},cats:MESES,
       yL:{min:Math.min(0,Math.floor(Math.min(...mens)/0.2)*0.2),max:mMax,step:0.2,fmt:v=>fmt(v,1)+'%'},
       yR:{min:0,max:6,step:1,fmt:v=>fmt(v,0)+'%'},
       bars:mens.map((v,i)=>({v,color:i>L?CH.g4:(v<0?CH.c:CH.g),border:i>L?CH.g2:null})),
-      lines:[{vals:IPC.v12,axis:'R',color:CH.sl,w:1.4,r:1.8}],
-      legend:{x:372,y:203,items:[{label:'IPC mensual (eje izquierdo)',color:CH.g},{label:'IPC en 12 meses (eje derecho)',color:CH.sl}]}});
-    vChart(c,{title:'IPC acumulado',plot:{l:516,t:189.9,r:760,b:345.3},cats:MESES,
+      lines:[{vals:IPC.v12,axis:'R',color:CH.sl,w:1.8,r:2.4}],
+      legend:{below:true,items:[{label:'IPC mensual (eje izquierdo)',color:CH.g},{label:'IPC en 12 meses (eje derecho)',color:CH.sl}]}});
+    vChart(c,{title:'IPC acumulado',fs:9,plot:{l:548,t:200,r:832,b:388},cats:MESES,
       yL:{min:0,max:6,step:1,fmt:v=>fmt(v,0)+'%'},
-      lines:[{vals:IPC.acum,color:CH.g,w:1.6,r:1.9,square:true}],
-      points:[{i:11,v:CFG.ipom.v,color:CH.c,label:pct(CFG.ipom.v),dx:-6,align:'r',lc:CH.c},
-              {i:11,v:CFG.proyCierre.v,color:CH.sl,label:pct(CFG.proyCierre.v),dx:-6,align:'r',lc:CH.sl},
-              {i:L,v:IPC.acum[L],color:CH.g,r:1.9,label:pct(IPC.acum[L]),dy:-8}],
-      legend:{x:776,y:199.5,items:[{label:'Acum. '+CFG.anio,color:CH.g},{label:CFG.ipom.lab,color:CH.c},{label:CFG.proyCierre.lab,color:CH.sl}]}});
+      lines:[{vals:IPC.acum,color:CH.g,w:2,r:2.4,square:true}],
+      points:[{i:11,v:CFG.ipom.v,color:CH.c,r:3.6,label:pct(CFG.ipom.v),dx:-8,align:'r',lc:CH.c},
+              {i:11,v:CFG.proyCierre.v,color:CH.sl,r:3.6,label:pct(CFG.proyCierre.v),dx:-8,align:'r',lc:CH.sl},
+              {i:L,v:IPC.acum[L],color:CH.g,r:2.4,label:pct(IPC.acum[L]),dy:-11}],
+      legend:{below:true,items:[{label:'Acum. '+CFG.anio,color:CH.g},{label:CFG.ipom.lab,color:CH.c},{label:CFG.proyCierre.lab,color:CH.sl}]}});
   });
   // 6. Contribución y variación acumulada por división
   const inc=DIVS.map((d,i)=>[d.n,DIV_ULT.inc[i]]).sort((a,b)=>b[1]-a[1]);
@@ -832,12 +841,12 @@ function pdfBuildStage(meta){
   const rng=(arr,step)=>({min:Math.min(0,Math.floor(Math.min(...arr)/step)*step),max:Math.max(0,Math.ceil(Math.max(...arr)/step)*step)});
   const rI=rng(inc.map(r=>r[1]),0.05),rA=rng(ac.map(r=>r[1]),5);
   chartSlide(stage,slides,'Contribución y variación acumulada por división','Fuente: INE.',c=>{
-    cNote(c,232,368,'Incidencia en pp, '+CFG.mes.toLowerCase()+'.');
-    cNote(c,642,368,'Enero a '+CFG.mes.toLowerCase()+'.');
-    hChart(c,{title:'Contribución por división - '+mesNom.toLowerCase(),plot:{l:232,t:193.5,r:458,b:349.25},
+    cNote(c,112.5,428,'Incidencia en pp, '+CFG.mes.toLowerCase()+'.');
+    cNote(c,516,428,'Enero a '+CFG.mes.toLowerCase()+'.');
+    hChart(c,{title:'Contribución por división - '+mesNom.toLowerCase(),plot:{l:236,t:193.5,r:438,b:398},
       cats:inc.map(r=>r[0]),vals:inc.map(r=>r[1]),colors:inc.map(r=>r[1]<0?CH.c:CH.gr),
       x:{min:rI.min,max:rI.max,step:0.05,fmt:v=>fmt(v,2)}});
-    hChart(c,{title:'Variación acumulada por división',plot:{l:642,t:189.9,r:868,b:345.3},
+    hChart(c,{title:'Variación acumulada por división',plot:{l:662,t:193.5,r:860,b:398},
       cats:ac.map(r=>r[0]),vals:ac.map(r=>r[1]),colors:ac.map(r=>r[0].startsWith('IPC')?CH.g:(r[1]<0?CH.c:CH.gr)),
       x:{min:rA.min,max:rA.max,step:5,fmt:v=>fmt(v,0)+'%'},valLabel:{i:iIPC,text:pct(IPC.acum[L]),color:'#3D6E1A'}});
   });
